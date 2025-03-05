@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        CHROME_DRIVER_PATH = "/usr/local/bin/chromedriver"  // Path inside the container
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -8,22 +12,29 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Setup Java & Dependencies') {
             steps {
-                sh 'mvn clean install'
+                sh 'java -version'  // Check Java version
+                sh 'mvn --version'  // Check Maven version
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Project') {
             steps {
-                sh 'mvn test'
+                sh 'mvn clean compile'
             }
         }
-    }
 
-    post {
-        always {
-            archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', fingerprint: true
+        stage('Run Selenium Tests') {
+            steps {
+                sh 'mvn test -Dwebdriver.chrome.driver=$CHROME_DRIVER_PATH'
+            }
+        }
+
+        stage('Post-Test Actions') {
+            steps {
+                junit '**/target/surefire-reports/*.xml'  // Archive test results
+            }
         }
     }
 }
