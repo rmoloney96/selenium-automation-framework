@@ -4,10 +4,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class FirstSeleniumTest {
 
@@ -16,7 +20,21 @@ public class FirstSeleniumTest {
     // BeforeClass will run the below function before your actual main code
     @BeforeClass
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+
+        // Generate a unique user data directory
+        try {
+            Path tempProfileDir = Files.createTempDirectory("chrome-profile");
+            options.addArguments("--user-data-dir=" + tempProfileDir.toAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Other recommended options
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--headless=new");  // Run Chrome in headless mode for Jenkins
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
     }

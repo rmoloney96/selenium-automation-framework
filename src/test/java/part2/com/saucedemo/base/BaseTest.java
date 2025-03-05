@@ -4,8 +4,12 @@ import com.base.BasePage;
 import com.saucedemo.pages.LoginPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class BaseTest {
 
@@ -16,7 +20,21 @@ public class BaseTest {
 
     @BeforeClass
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+
+        // Generate a unique user data directory
+        try {
+            Path tempProfileDir = Files.createTempDirectory("chrome-profile");
+            options.addArguments("--user-data-dir=" + tempProfileDir.toAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Other recommended options
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--headless=new");  // Run Chrome in headless mode for Jenkins
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         driver.get(url);
         basePage = new BasePage();

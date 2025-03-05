@@ -6,6 +6,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -14,6 +15,8 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import org.apache.commons.io.FileUtils;
 
@@ -30,7 +33,21 @@ public class BaseTest {
 
     @BeforeClass
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+
+        // Generate a unique user data directory
+        try {
+            Path tempProfileDir = Files.createTempDirectory("chrome-profile");
+            options.addArguments("--user-data-dir=" + tempProfileDir.toAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Other recommended options
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--headless=new");  // Run Chrome in headless mode for Jenkins
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
     }
 
