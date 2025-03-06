@@ -8,6 +8,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                script {
+                    // Get the current commit hash
+                    def currentCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+
+                    // Get the last successful commit hash (from git history or previous build)
+                    def lastCommit = sh(script: 'git rev-parse HEAD~1', returnStdout: true).trim()
+
+                    // If current commit is the same as the last commit, skip the build
+                    if (currentCommit == lastCommit) {
+                        currentBuild.result = 'SUCCESS'
+                        echo "No changes detected, skipping the build."
+                        return // Skip remaining stages
+                    }
+                }
+
+                // Checkout the code if changes are detected
                 git branch: 'main', url: 'https://github.com/rmoloney96/selenium-automation-framework.git'
             }
         }
